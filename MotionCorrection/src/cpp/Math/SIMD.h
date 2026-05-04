@@ -6,7 +6,22 @@
 #pragma once
 
 #include <stdint.h>
-#include <immintrin.h>
+
+#if defined(__x86_64__) || defined(_M_X64) || defined(__i386) || defined(_M_IX86)
+
+    #define MC_USE_X86_SIMD 1
+    #include <immintrin.h>
+
+#elif defined(__aarch64__) || defined(__arm64__) || defined(_M_ARM64)
+
+    #define MC_USE_X86_SIMD 0
+    #include "sse2neon.h"
+
+#else
+
+    #error "MotionCorrection SIMD backend requires x86 SIMD or arm64+sse2neon."
+
+#endif
 
 namespace SIMD
 {

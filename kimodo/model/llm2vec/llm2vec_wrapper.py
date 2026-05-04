@@ -7,6 +7,7 @@ import os
 import numpy as np
 import torch
 
+from ..loading import resolve_torch_device
 from .llm2vec import LLM2Vec
 
 
@@ -40,8 +41,7 @@ class LLM2VecEncoder:
         env_device = os.environ.get("TEXT_ENCODER_DEVICE")
         if env_device:
             device = env_device
-        if device == "auto":
-            device = "cuda" if torch.cuda.is_available() else "cpu"
+        device = resolve_torch_device(device)
         self._device = device
         if device is not None:
             self.model = self.model.to(device)

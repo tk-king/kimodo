@@ -33,7 +33,7 @@ class SOMASkin:
 
         # the skin is always the 77-joint skeleton
         #   if user is using the 30-joint skeleton, we will pad it when skinning is called
-        self.skeleton_skin = SOMASkeleton77(skel_path).to(device)
+        self.skeleton_skin = SOMASkeleton77(skel_path).to(device=device, dtype=torch.float32)
 
         # bind_rig_transform: [R, 4, 4]
         # bind_vertices: [V, 3]

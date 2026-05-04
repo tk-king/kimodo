@@ -79,3 +79,20 @@ __all__ = [
     "DEFAULT_TEXT_ENCODER_URL",
     "load_checkpoint_state_dict",
 ]
+
+
+def resolve_torch_device(preferred: Optional[str] = None) -> str:
+    """Resolve a torch runtime device, preferring CUDA, then MPS, then CPU."""
+    requested = preferred or "auto"
+    if requested != "auto":
+        return requested
+
+    if torch.cuda.is_available():
+        return "cuda:0"
+    if torch.backends.mps.is_available():
+        return "mps"
+    return "cpu"
+
+
+def is_mps_device(device: Optional[str]) -> bool:
+    return str(device).startswith("mps") if device is not None else False

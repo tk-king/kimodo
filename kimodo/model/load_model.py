@@ -15,7 +15,9 @@ from .loading import (
     MODEL_NAMES,
     TMR_MODELS,
     get_env_var,
+    is_mps_device,
     instantiate_from_dict,
+    resolve_torch_device,
 )
 from .registry import get_model_info, resolve_model_name
 
@@ -71,9 +73,17 @@ def _build_local_text_encoder_conf(text_encoder_fp32: bool = False) -> dict:
         available = ", ".join(sorted(TEXT_ENCODER_PRESETS))
         raise ValueError(f"Unknown TEXT_ENCODER='{text_encoder_name}'. Available: {available}")
 
-    preset = TEXT_ENCODER_PRESETS[text_encoder_name]
+    preset = {
+        "target": TEXT_ENCODER_PRESETS[text_encoder_name]["target"],
+        "kwargs": dict(TEXT_ENCODER_PRESETS[text_encoder_name]["kwargs"]),
+    }
+    text_encoder_device = resolve_torch_device(get_env_var("TEXT_ENCODER_DEVICE", "auto"))
     if text_encoder_fp32:
         preset["kwargs"]["dtype"] = "float32"
+    elif is_mps_device(text_encoder_device):
+        # MPS support is much more reliable with fp32 than bf16 in the local LLM2Vec stack.
+        preset["kwargs"]["dtype"] = "float32"
+    preset["kwargs"]["device"] = text_encoder_device
     return {
         "_target_": preset["target"],
         **preset["kwargs"],

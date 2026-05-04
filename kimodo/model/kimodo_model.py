@@ -18,6 +18,7 @@ from kimodo.tools import to_numpy
 
 from .cfg import ClassifierFreeGuidedModel
 from .diffusion import DDIMSampler, Diffusion
+from .loading import is_mps_device
 
 log = logging.getLogger(__name__)
 
@@ -55,6 +56,10 @@ class Kimodo(nn.Module):
         self.device = device
         # for classifier-free guidance
 
+        if is_mps_device(device):
+            # Some checkpoint-loaded buffers are float64, which MPS does not support.
+            # Normalize floating tensors to fp32 before moving the module to MPS.
+            self.to(dtype=torch.float32)
         self.to(device)
 
     @property

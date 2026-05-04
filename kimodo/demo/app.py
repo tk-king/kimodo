@@ -13,6 +13,7 @@ import torch
 
 import viser
 from kimodo.assets import DEMO_ASSETS_ROOT
+from kimodo.model.loading import resolve_torch_device
 from kimodo.model.load_model import load_model
 from kimodo.model.registry import resolve_model_name
 from kimodo.skeleton import SkeletonBase, SOMASkeleton30
@@ -54,7 +55,7 @@ from .state import ClientSession, ModelBundle
 
 class Demo:
     def __init__(self, default_model_name: str = DEFAULT_MODEL):
-        self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
+        self.device = resolve_torch_device(os.environ.get("KIMODO_DEVICE", "auto"))
         print(f"Using device: {self.device}")
         self.models: dict[str, ModelBundle] = {}
         self._text_encoder = None
@@ -146,7 +147,7 @@ class Demo:
 
         skeleton = model.motion_rep.skeleton
         if isinstance(skeleton, SOMASkeleton30):
-            skeleton = skeleton.somaskel77.to(model.device)
+            skeleton = skeleton.somaskel77.to(device=model.device, dtype=torch.float32)
         bundle = ModelBundle(
             model=model,
             motion_rep=model.motion_rep,

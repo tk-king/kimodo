@@ -13,6 +13,7 @@ from kimodo.constraints import load_constraints_lst
 from kimodo.exports.motion_io import save_kimodo_npz
 from kimodo.meta import load_prompts_from_meta
 from kimodo.model.cfg import CFG_TYPES
+from kimodo.model.loading import resolve_torch_device
 from kimodo.model.registry import get_model_info
 from kimodo.tools import load_json, save_json, seed_everything
 
@@ -274,7 +275,7 @@ def get_generation_inputs(args, fps: float):
 
 
 def main():
-    device = "cuda:0" if torch.cuda.is_available() else "cpu"
+    device = resolve_torch_device(os.environ.get("KIMODO_DEVICE", "auto"))
     print(f"Using device: {device}")
 
     args = parse_args()
@@ -401,7 +402,7 @@ def main():
 
             if isinstance(skeleton, SOMASkeleton30):
                 # Motion has already been converted to somaskel77 within the model for output
-                skeleton = skeleton.somaskel77.to(device)
+                skeleton = skeleton.somaskel77.to(device=device, dtype=torch.float32)
 
             if n_samples == 1:
                 bvh_path = _single_file_path(output_base, ".bvh")
